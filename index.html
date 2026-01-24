@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📝 รายการสิ่งที่ต้องทำ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #581c87 50%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="time"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+        }
+
+        input::placeholder {
+            color: #64748b;
+        }
+
+        .datetime-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(147, 51, 234, 0.6);
+        }
+
+        .todo-list {
+            margin-top: 24px;
+        }
+
+        .todo-item {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: start;
+            gap: 16px;
+            transition: all 0.3s;
+        }
+
+        .todo-item:hover {
+            border-color: #a855f7;
+        }
+
+        .todo-item.completed {
+            background: rgba(51, 65, 85, 0.5);
+            border-color: #475569;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #64748b;
+            border-radius: 8px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .checkbox:hover {
+            border-color: #a855f7;
+        }
+
+        .checkbox.checked {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+
+        .todo-content {
+            flex: 1;
+        }
+
+        .todo-task {
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .todo-item.completed .todo-task {
+            color: #64748b;
+            text-decoration: line-through;
+        }
+
+        .todo-datetime {
+            color: #94a3b8;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 0;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        .empty-state small {
+            color: #64748b;
+            display: block;
+            margin-top: 8px;
+        }
+
+        h2 {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📝 รายการสิ่งที่ต้องทำ</h1>
+            <p class="subtitle">จัดการงานของคุณให้เป็นระเบียบ</p>
+
+            <div class="form-group">
+                <label>สิ่งที่ต้องทำ</label>
+                <input type="text" id="taskInput" placeholder="พิมพ์งานที่ต้องทำ...">
+            </div>
+
+            <div class="datetime-group">
+                <div class="form-group">
+                    <label>📅 วันที่</label>
+                    <input type="date" id="dateInput">
+                </div>
+                <div class="form-group">
+                    <label>🕐 เวลา</label>
+                    <input type="time" id="timeInput">
+                </div>
+            </div>
+
+            <button class="btn-add" onclick="addTodo()">
+                <span style="font-size: 20px;">+</span>
+                เพิ่มงาน
+            </button>
+        </div>
+
+        <div class="card">
+            <h2 id="todoCount">รายการงาน (0)</h2>
+            <div id="todoList" class="todo-list">
+                <div class="empty-state">
+                    <div class="icon">✨</div>
+                    <p>ยังไม่มีรายการงาน</p>
+                    <small>เพิ่มงานแรกของคุณเลย!</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let todos = [];
+
+        // ตั้งค่าวันที่และเวลาเริ่มต้น
+        function initDateTime() {
+            const now = new Date();
+            const date = now.toISOString().split('T')[0];
+            const time = now.toTimeString().slice(0, 5);
+            document.getElementById('dateInput').value = date;
+            document.getElementById('timeInput').value = time;
+        }
+
+        // เพิ่มงาน
+        function addTodo() {
+            const taskInput = document.getElementById('taskInput');
+            const dateInput = document.getElementById('dateInput');
+            const timeInput = document.getElementById('timeInput');
+
+            if (taskInput.value.trim()) {
+                const todo = {
+                    id: Date.now(),
+                    task: taskInput.value,
+                    date: dateInput.value,
+                    time: timeInput.value,
+                    completed: false
+                };
+
+                todos.push(todo);
+                taskInput.value = '';
+                renderTodos();
+            }
+        }
+
+        // สลับสถานะเสร็จสิ้น
+        function toggleComplete(id) {
+            todos = todos.map(todo => 
+                todo.id === id ? { ...todo, completed: !todo.completed } : todo
+            );
+            renderTodos();
+        }
+
+        // ลบงาน
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            renderTodos();
+        }
+
+        // แปลงวันที่และเวลาเป็นภาษาไทย
+        function formatDateTime(date, time) {
+            const d = new Date(date + 'T' + time);
+            const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
+                                'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            return `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543} เวลา ${time} น.`;
+        }
+
+        // แสดงรายการงาน
+        function renderTodos() {
+            const todoList = document.getElementById('todoList');
+            const todoCount = document.getElementById('todoCount');
+            
+            todoCount.textContent = `รายการงาน (${todos.length})`;
+
+            if (todos.length === 0) {
+                todoList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">✨</div>
+                        <p>ยังไม่มีรายการงาน</p>
+                        <small>เพิ่มงานแรกของคุณเลย!</small>
+                    </div>
+                `;
+                return;
+            }
+
+            // เรียงตามวันเวลา
+            const sortedTodos = [...todos].sort((a, b) => {
+                const dateTimeA = new Date(a.date + 'T' + a.time);
+                const dateTimeB = new Date(b.date + 'T' + b.time);
+                return dateTimeA - dateTimeB;
+            });
+
+            todoList.innerHTML = sortedTodos.map(todo => `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                    <div class="checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleComplete(${todo.id})">
+                        ${todo.completed ? '✓' : ''}
+                    </div>
+                    <div class="todo-content">
+                        <div class="todo-task">${todo.task}</div>
+                        <div class="todo-datetime">
+                            📅 ${formatDateTime(todo.date, todo.time)}
+                        </div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // กด Enter เพื่อเพิ่มงาน
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTodo();
+            }
+        });
+
+        // เริ่มต้น
+        initDateTime();
+    </script>
+</body>
+</html>
