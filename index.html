@@ -185,6 +185,32 @@
             gap: 4px;
         }
 
+        .countdown {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(168, 85, 247, 0.2);
+            border-radius: 8px;
+            color: #a855f7;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .countdown.warning {
+            background: rgba(251, 146, 60, 0.2);
+            color: #fb923c;
+        }
+
+        .countdown.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
         .btn-delete {
             background: transparent;
             border: none;
@@ -227,39 +253,6 @@
             font-size: 1.5rem;
             margin-bottom: 24px;
         }
-        .todo-datetime {
-            color: #94a3b8;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .countdown {
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: rgba(168, 85, 247, 0.2);
-            border-radius: 8px;
-            color: #a855f7;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .countdown.warning {
-            background: rgba(251, 146, 60, 0.2);
-            color: #fb923c;
-        }
-
-        .countdown.danger {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
 
         .alert-overlay {
             position: fixed;
@@ -267,7 +260,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             align-items: center;
             justify-content: center;
@@ -286,61 +279,67 @@
 
         .alert-box {
             background: linear-gradient(135deg, #1e293b 0%, #581c87 100%);
-            border: 2px solid #ef4444;
+            border: 3px solid #ef4444;
             border-radius: 24px;
-            padding: 40px;
+            padding: 48px;
             max-width: 500px;
             text-align: center;
             animation: shake 0.5s infinite;
-            box-shadow: 0 20px 60px rgba(239, 68, 68, 0.5);
+            box-shadow: 0 20px 60px rgba(239, 68, 68, 0.6);
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-10px) rotate(-2deg); }
+            75% { transform: translateX(10px) rotate(2deg); }
         }
 
         .alert-icon {
-            font-size: 5rem;
-            margin-bottom: 20px;
+            font-size: 6rem;
+            margin-bottom: 24px;
             animation: bounce 1s infinite;
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
         }
 
         .alert-title {
             color: white;
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: bold;
             margin-bottom: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
         .alert-task {
             color: #fbbf24;
             font-size: 1.5rem;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
+            font-weight: 600;
         }
 
         .btn-stop {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
             border: none;
-            padding: 16px 48px;
+            padding: 18px 56px;
             border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.5);
             transition: all 0.3s;
         }
 
         .btn-stop:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+            transform: scale(1.1);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.7);
+        }
+
+        .btn-stop:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -348,7 +347,7 @@
     <div class="container">
         <div class="card">
             <h1>📝 รายการสิ่งที่ต้องทำ</h1>
-            <p class="subtitle">จัดการงานของคุณให้เป็นระเบียบ</p>
+            <p class="subtitle">จัดการงานของคุณให้เป็นระเบียบ พร้อมนับเวลาถอยหลัง</p>
 
             <div class="form-group">
                 <label>สิ่งที่ต้องทำ</label>
@@ -384,8 +383,144 @@
         </div>
     </div>
 
+    <div class="alert-overlay" id="alertOverlay">
+        <div class="alert-box">
+            <div class="alert-icon">⏰</div>
+            <div class="alert-title">🔔 ถึงเวลาแล้ว! 🔔</div>
+            <div class="alert-task" id="alertTask"></div>
+            <button class="btn-stop" onclick="stopAlert()">✋ หยุดการแจ้งเตือน</button>
+        </div>
+    </div>
+
     <script>
         let todos = [];
+        let countdownInterval;
+        let alertInterval;
+        let currentAlertTodo = null;
+
+        // สร้างเสียงแจ้งเตือนแบบดังและชัดเจน
+        function createAlertSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // สร้างเสียงแจ้งเตือนสองโทน
+            const oscillator1 = audioContext.createOscillator();
+            const oscillator2 = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator1.connect(gainNode);
+            oscillator2.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // โทนเสียงสูง-ต่ำสลับกัน
+            oscillator1.frequency.value = 880; // A5
+            oscillator2.frequency.value = 440; // A4
+            oscillator1.type = 'sine';
+            oscillator2.type = 'sine';
+
+            // ปรับระดับเสียงให้ดังขึ้น
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+            oscillator1.start(audioContext.currentTime);
+            oscillator1.stop(audioContext.currentTime + 0.15);
+            
+            oscillator2.start(audioContext.currentTime + 0.15);
+            oscillator2.stop(audioContext.currentTime + 0.3);
+        }
+
+        // แสดงการแจ้งเตือน
+        function showAlert(todo) {
+            currentAlertTodo = todo;
+            document.getElementById('alertTask').textContent = todo.task;
+            document.getElementById('alertOverlay').classList.add('show');
+            
+            // เล่นเสียงซ้ำทุก 0.8 วินาที
+            alertInterval = setInterval(() => {
+                createAlertSound();
+            }, 800);
+            
+            // เล่นเสียงครั้งแรกทันที
+            createAlertSound();
+        }
+
+        // หยุดการแจ้งเตือน
+        function stopAlert() {
+            document.getElementById('alertOverlay').classList.remove('show');
+            
+            if (alertInterval) {
+                clearInterval(alertInterval);
+                alertInterval = null;
+            }
+            
+            // ทำเครื่องหมายว่าเสร็จแล้ว
+            if (currentAlertTodo) {
+                toggleComplete(currentAlertTodo.id);
+                currentAlertTodo = null;
+            }
+        }
+
+        // ตรวจสอบเวลาและแจ้งเตือน
+        function checkAlerts() {
+            const now = new Date();
+            
+            todos.forEach(todo => {
+                if (!todo.completed && !todo.alerted) {
+                    const todoDateTime = new Date(todo.date + 'T' + todo.time);
+                    
+                    if (now >= todoDateTime) {
+                        todo.alerted = true;
+                        showAlert(todo);
+                    }
+                }
+            });
+        }
+
+        // อัพเดทเวลาถอยหลัง
+        function updateCountdowns() {
+            const now = new Date();
+            
+            todos.forEach(todo => {
+                if (!todo.completed) {
+                    const todoDateTime = new Date(todo.date + 'T' + todo.time);
+                    const diff = todoDateTime - now;
+                    
+                    const countdownEl = document.getElementById(`countdown-${todo.id}`);
+                    if (countdownEl) {
+                        if (diff <= 0) {
+                            countdownEl.textContent = '⏰ ถึงเวลาแล้ว!';
+                            countdownEl.className = 'countdown danger';
+                        } else {
+                            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                            
+                            let timeText = '';
+                            if (days > 0) {
+                                timeText = `⏳ อีก ${days} วัน ${hours} ชม. ${minutes} นาที`;
+                                countdownEl.className = 'countdown';
+                            } else if (hours > 0) {
+                                timeText = `⏳ อีก ${hours} ชม. ${minutes} นาที ${seconds} วินาที`;
+                                countdownEl.className = 'countdown';
+                            } else if (minutes > 5) {
+                                timeText = `⏳ อีก ${minutes} นาที ${seconds} วินาที`;
+                                countdownEl.className = 'countdown';
+                            } else if (minutes > 0) {
+                                timeText = `⚠️ อีก ${minutes} นาที ${seconds} วินาที`;
+                                countdownEl.className = 'countdown warning';
+                            } else {
+                                timeText = `🚨 อีก ${seconds} วินาที`;
+                                countdownEl.className = 'countdown danger';
+                            }
+                            
+                            countdownEl.textContent = timeText;
+                        }
+                    }
+                }
+            });
+            
+            checkAlerts();
+        }
 
         // ตั้งค่าวันที่และเวลาเริ่มต้น
         function initDateTime() {
@@ -408,7 +543,8 @@
                     task: taskInput.value,
                     date: dateInput.value,
                     time: timeInput.value,
-                    completed: false
+                    completed: false,
+                    alerted: false
                 };
 
                 todos.push(todo);
@@ -474,10 +610,13 @@
                         <div class="todo-datetime">
                             📅 ${formatDateTime(todo.date, todo.time)}
                         </div>
+                        ${!todo.completed ? `<div class="countdown" id="countdown-${todo.id}">⏳ กำลังคำนวณ...</div>` : ''}
                     </div>
                     <button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️</button>
                 </div>
             `).join('');
+            
+            updateCountdowns();
         }
 
         // กด Enter เพื่อเพิ่มงาน
@@ -489,6 +628,9 @@
 
         // เริ่มต้น
         initDateTime();
+        
+        // อัพเดทเวลาถอยหลังทุกวินาที
+        countdownInterval = setInterval(updateCountdowns, 1000);
     </script>
 </body>
 </html>
