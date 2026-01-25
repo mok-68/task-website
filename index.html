@@ -134,8 +134,12 @@
         }
 
         .todo-item.completed {
-            background: rgba(51, 65, 85, 0.5);
-            border-color: #475569;
+            background: rgba(34, 197, 94, 0.1);
+            border-color: #22c55e;
+        }
+
+        .todo-item.expired {
+            opacity: 0.6;
         }
 
         .checkbox {
@@ -173,8 +177,12 @@
         }
 
         .todo-item.completed .todo-task {
-            color: #64748b;
+            color: #22c55e;
             text-decoration: line-through;
+        }
+
+        .todo-item.expired .todo-task {
+            color: #64748b;
         }
 
         .todo-datetime {
@@ -204,6 +212,11 @@
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
             animation: pulse 1s infinite;
+        }
+
+        .countdown.expired {
+            background: rgba(100, 116, 139, 0.2);
+            color: #64748b;
         }
 
         @keyframes pulse {
@@ -341,6 +354,27 @@
         .btn-stop:active {
             transform: scale(0.95);
         }
+
+        .section-title {
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .storage-info {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            color: #22c55e;
+            font-size: 12px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -348,6 +382,7 @@
         <div class="card">
             <h1>📝 รายการสิ่งที่ต้องทำ</h1>
             <p class="subtitle">จัดการงานของคุณให้เป็นระเบียบ พร้อมนับเวลาถอยหลัง</p>
+            <div class="storage-info">💾 ข้อมูลบันทึกอัตโนมัติ - ไม่หายแม้ปิดเบราว์เซอร์</div>
 
             <div class="form-group">
                 <label>สิ่งที่ต้องทำ</label>
@@ -388,7 +423,7 @@
             <div class="alert-icon">⏰</div>
             <div class="alert-title">🔔 ถึงเวลาแล้ว! 🔔</div>
             <div class="alert-task" id="alertTask"></div>
-            <button class="btn-stop" onclick="stopAlert()">✋ หยุดการแจ้งเตือน</button>
+            <button class="btn-stop" onclick="stopAlert()">✋ รับทราบ</button>
         </div>
     </div>
 
@@ -397,12 +432,55 @@
         let countdownInterval;
         let alertInterval;
         let currentAlertTodo = null;
+        let cleanupInterval;
 
-        // สร้างเสียงแจ้งเตือนแบบดังและชัดเจน
+        // ใช้ localStorage แทน (ใช้ได้จริงและไม่หาย)
+        function loadTodos() {
+            try {
+                const saved = localStorage.getItem('todoList');
+                if (saved) {
+                    todos = JSON.parse(saved);
+                    console.log('✅ โหลดข้อมูล:', todos.length, 'รายการ');
+                } else {
+                    todos = [];
+                    console.log('ℹ️ เริ่มต้นใหม่');
+                }
+            } catch (error) {
+                console.error('❌ โหลดข้อมูลไม่สำเร็จ:', error);
+                todos = [];
+            }
+            renderTodos();
+        }
+
+        function saveTodos() {
+            try {
+                localStorage.setItem('todoList', JSON.stringify(todos));
+                console.log('💾 บันทึก:', todos.length, 'รายการ');
+            } catch (error) {
+                console.error('❌ บันทึกไม่สำเร็จ:', error);
+            }
+        }
+
+        function cleanupExpiredTodos() {
+            const now = new Date();
+            const initialLength = todos.length;
+            
+            todos = todos.filter(todo => {
+                const todoDateTime = new Date(todo.date + 'T' + todo.time);
+                const isExpired = now > todoDateTime;
+                return !isExpired || !todo.completed;
+            });
+            
+            if (todos.length !== initialLength) {
+                saveTodos();
+                console.log(`ลบงานที่เสร็จและหมดเวลา: ${initialLength - todos.length} รายการ`);
+                renderTodos();
+            }
+        }
+
         function createAlertSound() {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             
-            // สร้างเสียงแจ้งเตือนสองโทน
             const oscillator1 = audioContext.createOscillator();
             const oscillator2 = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -411,13 +489,11 @@
             oscillator2.connect(gainNode);
             gainNode.connect(audioContext.destination);
 
-            // โทนเสียงสูง-ต่ำสลับกัน
-            oscillator1.frequency.value = 880; // A5
-            oscillator2.frequency.value = 440; // A4
+            oscillator1.frequency.value = 880;
+            oscillator2.frequency.value = 440;
             oscillator1.type = 'sine';
             oscillator2.type = 'sine';
 
-            // ปรับระดับเสียงให้ดังขึ้น
             gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
 
@@ -428,22 +504,18 @@
             oscillator2.stop(audioContext.currentTime + 0.3);
         }
 
-        // แสดงการแจ้งเตือน
         function showAlert(todo) {
             currentAlertTodo = todo;
             document.getElementById('alertTask').textContent = todo.task;
             document.getElementById('alertOverlay').classList.add('show');
             
-            // เล่นเสียงซ้ำทุก 0.8 วินาที
             alertInterval = setInterval(() => {
                 createAlertSound();
             }, 800);
             
-            // เล่นเสียงครั้งแรกทันที
             createAlertSound();
         }
 
-        // หยุดการแจ้งเตือน
         function stopAlert() {
             document.getElementById('alertOverlay').classList.remove('show');
             
@@ -452,14 +524,12 @@
                 alertInterval = null;
             }
             
-            // ทำเครื่องหมายว่าเสร็จแล้ว
             if (currentAlertTodo) {
                 toggleComplete(currentAlertTodo.id);
                 currentAlertTodo = null;
             }
         }
 
-        // ตรวจสอบเวลาและแจ้งเตือน
         function checkAlerts() {
             const now = new Date();
             
@@ -470,12 +540,12 @@
                     if (now >= todoDateTime) {
                         todo.alerted = true;
                         showAlert(todo);
+                        saveTodos();
                     }
                 }
             });
         }
 
-        // อัพเดทเวลาถอยหลัง
         function updateCountdowns() {
             const now = new Date();
             
@@ -487,8 +557,8 @@
                     const countdownEl = document.getElementById(`countdown-${todo.id}`);
                     if (countdownEl) {
                         if (diff <= 0) {
-                            countdownEl.textContent = '⏰ ถึงเวลาแล้ว!';
-                            countdownEl.className = 'countdown danger';
+                            countdownEl.textContent = '⏰ หมดเวลาแล้ว (รอการยืนยัน)';
+                            countdownEl.className = 'countdown expired';
                         } else {
                             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
                             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -522,7 +592,6 @@
             checkAlerts();
         }
 
-        // ตั้งค่าวันที่และเวลาเริ่มต้น
         function initDateTime() {
             const now = new Date();
             const date = now.toISOString().split('T')[0];
@@ -531,7 +600,6 @@
             document.getElementById('timeInput').value = time;
         }
 
-        // เพิ่มงาน
         function addTodo() {
             const taskInput = document.getElementById('taskInput');
             const dateInput = document.getElementById('dateInput');
@@ -549,25 +617,37 @@
 
                 todos.push(todo);
                 taskInput.value = '';
+                saveTodos();
                 renderTodos();
             }
         }
 
-        // สลับสถานะเสร็จสิ้น
         function toggleComplete(id) {
-            todos = todos.map(todo => 
-                todo.id === id ? { ...todo, completed: !todo.completed } : todo
-            );
-            renderTodos();
+            const todo = todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                
+                const now = new Date();
+                const todoDateTime = new Date(todo.date + 'T' + todo.time);
+                if (todo.completed && now > todoDateTime) {
+                    setTimeout(() => {
+                        todos = todos.filter(t => t.id !== id);
+                        saveTodos();
+                        renderTodos();
+                    }, 500);
+                } else {
+                    saveTodos();
+                    renderTodos();
+                }
+            }
         }
 
-        // ลบงาน
         function deleteTodo(id) {
             todos = todos.filter(todo => todo.id !== id);
+            saveTodos();
             renderTodos();
         }
 
-        // แปลงวันที่และเวลาเป็นภาษาไทย
         function formatDateTime(date, time) {
             const d = new Date(date + 'T' + time);
             const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
@@ -575,7 +655,6 @@
             return `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543} เวลา ${time} น.`;
         }
 
-        // แสดงรายการงาน
         function renderTodos() {
             const todoList = document.getElementById('todoList');
             const todoCount = document.getElementById('todoCount');
@@ -593,15 +672,66 @@
                 return;
             }
 
-            // เรียงตามวันเวลา
-            const sortedTodos = [...todos].sort((a, b) => {
+            const now = new Date();
+            
+            const activeTodos = [];
+            const completedTodos = [];
+            const expiredTodos = [];
+            
+            todos.forEach(todo => {
+                const todoDateTime = new Date(todo.date + 'T' + todo.time);
+                const isExpired = now > todoDateTime;
+                
+                if (todo.completed) {
+                    completedTodos.push(todo);
+                } else if (isExpired) {
+                    expiredTodos.push(todo);
+                } else {
+                    activeTodos.push(todo);
+                }
+            });
+
+            const sortByDateTime = (a, b) => {
                 const dateTimeA = new Date(a.date + 'T' + a.time);
                 const dateTimeB = new Date(b.date + 'T' + b.time);
                 return dateTimeA - dateTimeB;
-            });
+            };
 
-            todoList.innerHTML = sortedTodos.map(todo => `
-                <div class="todo-item ${todo.completed ? 'completed' : ''}">
+            activeTodos.sort(sortByDateTime);
+            expiredTodos.sort(sortByDateTime);
+            completedTodos.sort(sortByDateTime);
+
+            let html = '';
+
+            if (activeTodos.length > 0) {
+                html += '<div class="section-title">⏳ กำลังดำเนินการ</div>';
+                html += activeTodos.map(todo => renderTodoItem(todo, false)).join('');
+            }
+
+            if (expiredTodos.length > 0) {
+                html += '<div class="section-title">⚠️ หมดเวลาแล้ว - รอการยืนยัน</div>';
+                html += expiredTodos.map(todo => renderTodoItem(todo, true)).join('');
+            }
+
+            if (completedTodos.length > 0) {
+                const notExpiredCompleted = completedTodos.filter(todo => {
+                    const todoDateTime = new Date(todo.date + 'T' + todo.time);
+                    return now <= todoDateTime;
+                });
+                
+                if (notExpiredCompleted.length > 0) {
+                    html += '<div class="section-title">✅ เสร็จสิ้นแล้ว</div>';
+                    html += notExpiredCompleted.map(todo => renderTodoItem(todo, false)).join('');
+                }
+            }
+
+            todoList.innerHTML = html;
+            updateCountdowns();
+        }
+
+        function renderTodoItem(todo, isExpired) {
+            return `
+                <div class="todo-item ${todo.completed ? 'completed' : ''} ${isExpired && !todo.completed ? 'expired' : ''}">
                     <div class="checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleComplete(${todo.id})">
                         ${todo.completed ? '✓' : ''}
                     </div>
@@ -614,23 +744,28 @@
                     </div>
                     <button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️</button>
                 </div>
-            `).join('');
-            
-            updateCountdowns();
+            `;
         }
 
-        // กด Enter เพื่อเพิ่มงาน
         document.getElementById('taskInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 addTodo();
             }
         });
 
-        // เริ่มต้น
-        initDateTime();
-        
-        // อัพเดทเวลาถอยหลังทุกวินาที
-        countdownInterval = setInterval(updateCountdowns, 1000);
+        function init() {
+            console.log('🚀 เริ่มต้นแอปพลิเคชัน');
+            
+            initDateTime();
+            loadTodos();
+            
+            countdownInterval = setInterval(updateCountdowns, 1000);
+            cleanupInterval = setInterval(cleanupExpiredTodos, 30000);
+            
+            console.log('✅ พร้อมใช้งาน!');
+        }
+
+        init();
     </script>
 </body>
 </html>
