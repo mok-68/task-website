@@ -1,0 +1,126 @@
+body{
+    margin: 0;
+    padding: 0;
+    /* background-image: url("/hello.png");
+    opacity: 0.9;
+    background-repeat: no-repeat;
+    background-position: cover ; */
+    background:#0f172a ;
+
+}
+.hide{
+    display: none;
+}
+.layout{
+    
+    display: grid;
+    grid-template-areas:
+    "head head head" 
+    "aside nav nav"
+    "aside article article"
+    "foot foot foot";
+    
+}
+
+
+    
+
+
+header , aside, nav, article,footer{border: 1px solid rgb(255, 255, 255);}
+header{grid-area: head;}
+aside{grid-area: aside;}
+nav{grid-area: nav;}
+article{grid-area: article;}
+footer{grid-area: foot;}
+.button{
+    border-radius: 100%;
+    border: none;
+    background-color: #22c55e;
+}
+.button:hover{
+    background-color: rgb(26, 158, 0);
+    transform: scale(1.2);
+}
+.mar{
+    font-weight: 500;
+    font-size: large;
+    text-shadow: 2px 2px 2px rgb(199, 199, 199) ;
+    color: aliceblue;
+}
+#show{
+    color: aliceblue;
+}
+#submit{
+    background: #3b82f6;
+    border: none;
+    border-radius: 10%;
+    color: blanchedalmond;
+
+}
+#submit:hover{
+    box-shadow: 0 0 5px #0062ff;
+}
+#submit:hover{
+    cursor: pointer;
+    background: #0062ff;
+}
+.margin{
+    margin: 10px;
+    padding: 5px;
+
+}
+.mynameis{
+    font-size: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    color: aliceblue;
+    
+}
+.dot{
+    background-color:rgb(179, 179, 179) ;
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-color: none;
+    border-radius: 50%;
+    animation: fog 1s infinite;
+}
+.pic{
+    animation: fog 1s infinite;
+    box-shadow: 2px 2px 2px white;
+    margin: 10px;
+}
+@keyframes fog{
+    /* 0%{transform:translateY(0);} */
+    25%{transform: translateY(2px);}
+    /* 50%{transform: translateY(0px);} */
+    75%{transform: translateY(-2px);}
+    /* 100%{transform: translateY(0);} */
+}
+
+
+.dots{
+    animation-delay: 1.1s;
+}
+.dotss{
+    animation-delay: 1.2s;
+}
+nav{
+    text-align: center;
+    
+    
+}
+@media (max-width: 768px) {
+    .layout{
+        grid-template-areas: 
+        "head"
+        "aside"
+        "nav"  
+        "article"
+        "foot"
+        ;
+    }
+}
+/* #0f172a   พื้นหลัง
+#3b82f6  ปุ่ม 
+#22c55e   highlight 
+#f1f5f9   ตัวหนังสือ  */
