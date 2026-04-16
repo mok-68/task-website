@@ -1,0 +1,32 @@
+.first:hover{
+    box-shadow: 0 0 20px #3b82f6 , 0 0 40px #3b82f6;
+}
+.first{
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 10%;
+}
+.secon{
+    position: relative;
+    overflow: hidden;
+    color: white;
+    background: transparent;
+    border: none;
+    background-color: #3b82f6;
+    border-radius: 10%;
+}
+
+.secon::before{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 100%;
+    background: #01ff5e;
+    transition: 0.4s;
+    z-index: -1;
+    
+}
+
